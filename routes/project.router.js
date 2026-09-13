@@ -16,11 +16,24 @@ import {
   verifyMemberExists,
   verifyProjectPermission,
 } from "../middleware/project.middleware.js";
+import { validateRequest } from "../middleware/validation.middleware.js";
+import {
+  addMemberValidator,
+  createProjectValidator,
+  editMemberRoleValidator,
+  updateProjectValidator,
+} from "../validators/reqBody.validator.js";
 
 const projectRouter = Router();
 
 projectRouter.get("/", authMiddleware, listProjects);
-projectRouter.post("/", authMiddleware, createProject);
+projectRouter.post(
+  "/",
+  authMiddleware,
+  createProjectValidator,
+  validateRequest,
+  createProject,
+);
 
 projectRouter.get(
   "/:projectId",
@@ -34,6 +47,8 @@ projectRouter.put(
   authMiddleware,
   validateProjectExists,
   verifyProjectPermission(["admin"]),
+  updateProjectValidator,
+  validateRequest,
   updateProject,
 );
 projectRouter.delete(
@@ -56,6 +71,8 @@ projectRouter.post(
   authMiddleware,
   validateProjectExists,
   verifyProjectPermission(["admin"]),
+  addMemberValidator,
+  validateRequest,
   addMember,
 );
 projectRouter.put(
@@ -64,6 +81,8 @@ projectRouter.put(
   validateProjectExists,
   verifyProjectPermission(["admin"]),
   verifyMemberExists,
+  editMemberRoleValidator,
+  validateRequest,
   editMemberRole,
 );
 projectRouter.delete(

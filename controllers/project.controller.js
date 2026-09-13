@@ -2,11 +2,10 @@ import apiError from "../utils/apiError.js";
 import apiResponse from "../utils/apiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { Project } from "../models/project.model.js";
-import {
-  ProjectMember,
-  AvailableUserRoles,
-} from "../models/projectMember.model.js";
+import { ProjectMember } from "../models/projectMember.model.js";
 import User from "../models/user.model.js";
+import { Task } from "../models/task.model.js";
+import { SubTask } from "../models/subTask.model.js";
 
 export const listProjects = asyncHandler(async (req, res) => {
   const projects = await ProjectMember.aggregate([
@@ -61,14 +60,8 @@ export const listProjects = asyncHandler(async (req, res) => {
 
 export const createProject = asyncHandler(async (req, res) => {
   const { name, description } = req.body;
-
-  if (!name?.trim()) {
-    throw new apiError(400, "Project name is required");
-  }
-
-  const projectName = name.trim();
   const existingProject = await Project.exists({
-    name: projectName,
+    name,
     createdBy: req.user._id,
   });
 
@@ -77,7 +70,7 @@ export const createProject = asyncHandler(async (req, res) => {
   }
 
   const project = await Project.create({
-    name: projectName,
+    name,
     description,
     createdBy: req.user._id,
   });
@@ -94,7 +87,31 @@ export const createProject = asyncHandler(async (req, res) => {
 });
 
 export const projectDetails = asyncHandler(async (req, res) => {
-  return res.status(200).json(new apiResponse(200, req.project));
+  const tasks = await Task.find({ project: req.project._id })
+    .select("title status assignedTo assignedBy")
+    .lean();
+
+  const subtasks = await SubTask.find({
+    task: { $in: tasks.map((task) => task._id) },
+  })
+    .select("task content isCompleted createdBy")
+    .lean();
+
+  const project = {
+    ...req.project.toObject(),
+    tasks: tasks.map((task) => ({
+      ...task,
+      subtasks: subtasks
+        .filter((subtask) => subtask.task.equals(task._id))
+        .map(({ content, isCompleted, createdBy }) => ({
+          title: content,
+          isCompleted,
+          createdBy,
+        })),
+    })),
+  };
+
+  return res.status(200).json(new apiResponse(200, project));
 });
 
 export const listMembers = asyncHandler(async (req, res) => {
@@ -148,10 +165,7 @@ export const updateProject = asyncHandler(async (req, res) => {
   const project = req.project;
 
   if (name !== undefined) {
-    if (typeof name !== "string" || !name.trim()) {
-      throw new apiError(400, "Project name cannot be empty");
-    }
-    project.name = name.trim();
+    project.name = name;
   }
 
   if (description !== undefined) {
@@ -164,6 +178,11 @@ export const updateProject = asyncHandler(async (req, res) => {
 
 export const deleteProject = asyncHandler(async (req, res) => {
   const { projectId } = req.params;
+  const tasks = await Task.find({ project: projectId }).select("_id");
+  const taskIds = tasks.map((task) => task._id);
+
+  await SubTask.deleteMany({ task: { $in: taskIds } });
+  await Task.deleteMany({ project: projectId });
 
   await ProjectMember.deleteMany({ project: projectId });
 
@@ -176,12 +195,6 @@ export const deleteProject = asyncHandler(async (req, res) => {
 
 export const addMember = asyncHandler(async (req, res) => {
   const { email, role = "member" } = req.body;
-
-  if (!email) throw new apiError(400, "email of the member is required");
-
-  if (!AvailableUserRoles.includes(role)) {
-    throw new apiError(400, "Invalid role specified");
-  }
   const user = await User.findOne({ email });
 
   const existing = await ProjectMember.findOne({
@@ -206,10 +219,6 @@ export const addMember = asyncHandler(async (req, res) => {
 
 export const editMemberRole = asyncHandler(async (req, res) => {
   const { newRole } = req.body;
-
-  if (!AvailableUserRoles.includes(newRole)) {
-    throw new apiError(400, "Invalid role specified");
-  }
   if (
     req.targetMembership.role === "admin" &&
     !req.project.isOwner(req.user._id)

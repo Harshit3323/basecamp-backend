@@ -6,6 +6,7 @@ import userRouter from "./routes/user.router.js";
 import { errorHandler } from "./middleware/error.middleware.js";
 import cookieParser from "cookie-parser";
 import projectRouter from "./routes/project.router.js";
+import taskRouter from "./routes/task.router.js";
 
 const app = express();
 
@@ -29,6 +30,7 @@ app.use("/api/v1/healthcheck/", healthRouter);
 app.use("/api/v1/auth/", userRouter);
 
 app.use("/api/v1/projects/", projectRouter);
+app.use("/api/v1/tasks/", taskRouter);
 
 app.use(errorHandler);
 

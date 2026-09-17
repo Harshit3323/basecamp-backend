@@ -133,3 +133,25 @@ export const updateSubTaskValidator = [
     .withMessage("isCompleted must be a boolean")
     .toBoolean(),
 ];
+
+export const createNoteValidator = [
+  body("content")
+    .isString()
+    .withMessage("Note content must be a string")
+    .trim()
+    .notEmpty()
+    .withMessage("Note content is required")
+    .isLength({ max: 10000 })
+    .withMessage("Note content must not exceed 10000 characters"),
+];
+
+export const updateNoteValidator = [
+  body("content")
+    .isString()
+    .withMessage("Note content must be a string")
+    .trim()
+    .notEmpty()
+    .withMessage("Note content is required")
+    .isLength({ max: 10000 })
+    .withMessage("Note content must not exceed 10000 characters"),
+];

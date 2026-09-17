@@ -6,6 +6,7 @@ import { ProjectMember } from "../models/projectMember.model.js";
 import User from "../models/user.model.js";
 import { Task } from "../models/task.model.js";
 import { SubTask } from "../models/subTask.model.js";
+import { Note } from "../models/note.model.js";
 
 export const listProjects = asyncHandler(async (req, res) => {
   const projects = await ProjectMember.aggregate([
@@ -183,6 +184,8 @@ export const deleteProject = asyncHandler(async (req, res) => {
 
   await SubTask.deleteMany({ task: { $in: taskIds } });
   await Task.deleteMany({ project: projectId });
+
+  await Note.deleteMany({ project: projectId });
 
   await ProjectMember.deleteMany({ project: projectId });
 

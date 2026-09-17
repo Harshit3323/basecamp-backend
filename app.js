@@ -7,6 +7,7 @@ import { errorHandler } from "./middleware/error.middleware.js";
 import cookieParser from "cookie-parser";
 import projectRouter from "./routes/project.router.js";
 import taskRouter from "./routes/task.router.js";
+import noteRouter from "./routes/note.router.js";
 
 const app = express();
 
@@ -31,6 +32,7 @@ app.use("/api/v1/auth/", userRouter);
 
 app.use("/api/v1/projects/", projectRouter);
 app.use("/api/v1/tasks/", taskRouter);
+app.use("/api/v1/notes/", noteRouter);
 
 app.use(errorHandler);
 

@@ -104,7 +104,8 @@ export const projectDetails = asyncHandler(async (req, res) => {
       ...task,
       subtasks: subtasks
         .filter((subtask) => subtask.task.equals(task._id))
-        .map(({ content, isCompleted, createdBy }) => ({
+        .map(({ _id, content, isCompleted, createdBy }) => ({
+          _id,
           title: content,
           isCompleted,
           createdBy,
@@ -146,6 +147,7 @@ export const listMembers = asyncHandler(async (req, res) => {
     {
       $project: {
         _id: 0,
+        userId: "$user._id",
         userName: "$user.userName",
         name: "$user.name",
         role: 1,
@@ -200,14 +202,14 @@ export const addMember = asyncHandler(async (req, res) => {
   const { email, role = "member" } = req.body;
   const user = await User.findOne({ email });
 
+  if (!user) throw new apiError(404, "user not found");
+
   const existing = await ProjectMember.findOne({
     project: req.project._id,
     user: user._id,
   });
   if (existing)
     throw new apiError(409, "User is already a member of this project");
-
-  if (!user) throw new apiError(404, "user not found");
 
   const member = await ProjectMember.create({
     project: req.project._id,

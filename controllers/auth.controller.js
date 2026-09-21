@@ -95,10 +95,13 @@ export const logoutUser = asyncHandler(async (req, res) => {
 });
 
 export const currentUser = asyncHandler(async (req, res) => {
+  const safeUser = await User.findById(req.user._id).select(
+    "-password -refreshToken -forgotPasswordToken -forgotPasswordTokenExpiry -emailVerificationToken -emailVerificationTokenExpiry",
+  );
   return res
     .status(200)
     .json(
-      new apiResponse(200, req.user, "currect user data fetched successfully"),
+      new apiResponse(200, safeUser, "current user data fetched successfully"),
     );
 });
 

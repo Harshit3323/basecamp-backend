@@ -7,9 +7,10 @@ import("dotenv/config");
 export const authMiddleware = asyncHandler(async (req, res, next) => {
   const jwtToken =
     req.cookies?.accessToken ||
+    req.header("authorization")?.replace("Bearer ", "") ||
     req.header("autherization")?.replace("Bearer ", "");
 
-  if (!jwtToken) throw new apiError(401, "unautherized request");
+  if (!jwtToken) throw new apiError(401, "unauthorized request");
 
   try {
     const decodedToken = jwt.verify(jwtToken, process.env.ACCESS_TOKEN_SECRET);
@@ -18,7 +19,7 @@ export const authMiddleware = asyncHandler(async (req, res, next) => {
     req.user = user;
     next();
   } catch (error) {
-    console.error(error.message);
-    next();
+    if (error instanceof apiError) throw error;
+    throw new apiError(401, error?.message || "unauthorized request");
   }
 });

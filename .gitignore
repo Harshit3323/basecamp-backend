@@ -1,4 +1,63 @@
-node_modules
-PRD.md
+# Dependencies
+node_modules/
+frontend/node_modules/
+
+# Environment files and local secrets
 .env
+.env.*
+!.env.example
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
+
+# Build and test output
+dist/
+frontend/dist/
+build/
+coverage/
+.nyc_output/
+.vite/
+
+# Logs and runtime files
+*.log
+logs/
+*.pid
+*.seed
+*.pid.lock
+
+# Cache and temporary files
+.cache/
+.temp/
+tmp/
+temp/
+*.tmp
+*.temp
+
+# Editor and workspace files
+.vscode/
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.swp
+*.swo
+
+# Operating-system files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Local deployment and tool state
+.vercel/
+.netlify/
+.render/
+.turbo/
+.eslintcache
+
+# Existing project-local files intentionally kept out of version control
+frontend/
+PRD.md
 notes-feature-plan.md
+BACKEND_GUIDE.md
+plan.md
+CREATE_FRONTEND_PROMPT.md
+PROGRESS.md

@@ -23,8 +23,10 @@ export const listProjectTasks = asyncHandler(async (req, res) => {
     ...task,
     subtasks: subtasks
       .filter((subtask) => subtask.task.equals(task._id))
-      .map(({ content, isCompleted, createdBy }) => ({
+      .map(({ _id, content, isCompleted, createdBy }) => ({
+        _id,
         title: content,
+        content,
         isCompleted,
         createdBy,
       })),
@@ -60,13 +62,15 @@ export const createTask = asyncHandler(async (req, res) => {
 
 export const getTaskDetails = asyncHandler(async (req, res) => {
   const subtasks = await SubTask.find({ task: req.task._id })
-    .select("content isCompleted createdBy")
+    .select("_id content isCompleted createdBy")
     .lean();
 
   const task = {
     ...req.task.toObject(),
-    subtasks: subtasks.map(({ content, isCompleted, createdBy }) => ({
+    subtasks: subtasks.map(({ _id, content, isCompleted, createdBy }) => ({
+      _id,
       title: content,
+      content,
       isCompleted,
       createdBy,
     })),
